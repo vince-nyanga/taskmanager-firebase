@@ -6,44 +6,46 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
 import com.firebase.ui.database.FirebaseListAdapter;
-import com.google.firebase.database.ChildEventListener;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import me.vincenyanga.taskmanager.adapters.TasksAdapter;
 import me.vincenyanga.taskmanager.fragments.AddTaskFragment;
 import me.vincenyanga.taskmanager.models.Task;
 
-public class MainActivity extends AppCompatActivity implements AddTaskFragment.TaskCallbackListener {
+public class TasksActivity extends AppCompatActivity implements AddTaskFragment
+        .TaskCallbackListener {
 
     private ListView taskList;
     private FloatingActionButton addButton;
 
-
     private DatabaseReference tasksRef;
     private FirebaseListAdapter<Task> adapter;
+
+    private String listName;
+    private String listKey;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
+        Bundle extras = getIntent().getExtras();
+        if(extras !=  null){
+            this.listKey = extras.getString("key");
+            this.listName = extras.getString("name");
+        }
+        getSupportActionBar().setTitle(listName);
+        tasksRef = FirebaseDatabase.getInstance().getReference().child("tasks").child(listKey);
         taskList = (ListView) findViewById(R.id.task_list);
         addButton = (FloatingActionButton) findViewById(R.id.add_btn);
 
-        tasksRef = FirebaseDatabase.getInstance().getReference().child("tasks");
-        adapter = new FirebaseListAdapter<Task>(MainActivity.this, Task.class, R.layout.task_list_item, tasksRef) {
+
+        adapter = new FirebaseListAdapter<Task>(TasksActivity.this, Task.class, R.layout
+                .task_list_item, tasksRef) {
             @Override
             protected void populateView(View view, Task task, int i) {
                 TextView taskName = (TextView) view.findViewById(R.id.task_name);
@@ -51,7 +53,8 @@ public class MainActivity extends AppCompatActivity implements AddTaskFragment.T
                     // If the task is done (completed) we strike through it.
                     taskName.setPaintFlags(taskName.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
                 } else {
-                    taskName.setPaintFlags(taskName.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG));
+                    taskName.setPaintFlags(taskName.getPaintFlags() & (~Paint
+                            .STRIKE_THRU_TEXT_FLAG));
                 }
                 taskName.setText(task.getName());
             }
@@ -71,7 +74,7 @@ public class MainActivity extends AppCompatActivity implements AddTaskFragment.T
         addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                AddTaskFragment.newInstance().show(getFragmentManager(),"new_task");
+                AddTaskFragment.newInstance().show(getFragmentManager(), "new_task");
             }
         });
     }
